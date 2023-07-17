@@ -1,4 +1,4 @@
-;;; yasnippet.el --- Yet another snippet extension for Emacs  -*- lexical-binding: t; -*-
+;;; yasnippet.el --- Yet another snippet extension for Emacs -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 ;; Authors: pluskid <pluskid@gmail.com>,
@@ -6,11 +6,12 @@
 ;;          Noam Postavsky <npostavs@gmail.com>
 ;; Maintainer: Noam Postavsky <npostavs@gmail.com>
 ;; Version: 0.14.0
-;; X-URL: http://github.com/joaotavora/yasnippet
+;; X-URL: https://github.com/joaotavora/yasnippet
 ;; Keywords: convenience, emulation
-;; URL: http://github.com/joaotavora/yasnippet
+;; URL: https://github.com/joaotavora/yasnippet
 ;; Package-Requires: ((cl-lib "0.5"))
 ;; EmacsWiki: YaSnippetMode
+
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -132,8 +133,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'eldoc) ; Needed for 24.
-(declare-function cl-progv-after "cl-extra") ; Needed for 23.4.
+(require 'eldoc) ; Needed for 24. ; Needed for 23.4.
 (require 'easymenu)
 (require 'help-mode)
 
@@ -697,9 +697,9 @@ expanded.")
   (let ((map (make-sparse-keymap)))
     (define-key map [(tab)]     yas-maybe-expand)
     (define-key map (kbd "TAB") yas-maybe-expand)
-    (define-key map "\C-c&\C-s" 'yas-insert-snippet)
-    (define-key map "\C-c&\C-n" 'yas-new-snippet)
-    (define-key map "\C-c&\C-v" 'yas-visit-snippet-file)
+    (define-key map "\C-c&\C-s" #'yas-insert-snippet)
+    (define-key map "\C-c&\C-n" #'yas-new-snippet)
+    (define-key map "\C-c&\C-v" #'yas-visit-snippet-file)
     map)
   "The keymap used when `yas-minor-mode' is active.")
 
@@ -2052,7 +2052,7 @@ If INTERACTIVE is non nil, show message."
 prompt the user to select one."
   (let (errors)
     (if (null yas-snippet-dirs)
-        (call-interactively 'yas-load-directory)
+        (call-interactively #'yas-load-directory)
       (when (member yas--default-user-snippets-dir yas-snippet-dirs)
         (make-directory yas--default-user-snippets-dir t))
       (dolist (directory (reverse (yas-snippet-dirs)))
@@ -2065,6 +2065,7 @@ prompt the user to select one."
                (push (yas--message 1 "Check your `yas-snippet-dirs': %s is not a directory" directory) errors)))))
     errors))
 
+;;;###autoload
 (defun yas-reload-all (&optional no-jit interactive)
   "Reload all snippets and rebuild the YASnippet menu.
 
@@ -2160,6 +2161,7 @@ prefix argument."
 
 ;;; Snippet compilation function
 
+;;;###autoload
 (defun yas-compile-directory (top-level-dir)
   "Create .yas-compiled-snippets.el files under subdirs of TOP-LEVEL-DIR.
 
@@ -2169,6 +2171,7 @@ This works by stubbing a few functions, then calling
   (let ((yas--creating-compiled-snippets t))
     (yas-load-directory top-level-dir nil)))
 
+;;;###autoload
 (defun yas-recompile-all ()
   "Compile every dir in `yas-snippet-dirs'."
   (interactive)
@@ -2188,6 +2191,7 @@ This works by stubbing a few functions, then calling
 
 ;;; Some user level functions
 
+;;;###autoload
 (defun yas-about ()
   (interactive)
   (message "yasnippet (version %s) -- pluskid/joaotavora/npostavs"
@@ -2408,7 +2412,8 @@ value for the first time then always returns a cached value.")
            (put ',func 'yas--condition-cache (cons yas--condition-cache-timestamp new-value))
            new-value)))))
 
-(defalias 'yas-expand 'yas-expand-from-trigger-key)
+(defalias #'yas-expand 'yas-expand-from-trigger-key)
+
 (defun yas-expand-from-trigger-key (&optional field)
   "Expand a snippet before point.
 
@@ -5447,10 +5452,31 @@ i.e. the ones with \"yas-\" single dash prefix. I will try to
 keep them in future yasnippet versions and other elisp libraries
 can more or less safely rely upon them.")
 
+;;;###autoload
+(defun yas-snippet-dwim ()
+  "Return a snippet based on the current region or insert a new snippet."
+  (interactive)
+  (unless (bound-and-true-p yas-minor-mode)
+    (yas-minor-mode 1))
+  (if
+      (when (and (region-active-p)
+                 (use-region-p))
+        (buffer-substring-no-properties
+         (region-beginning)
+         (region-end)))
+      (yas-new-snippet)
+    (call-interactively (if (and (eq completing-read-function
+                                     'ivy-completing-read)
+                                 (fboundp 'ivy-yasnippet))
+                            #'ivy-yasnippet
+                          #'yas-insert-snippet))))
+
 
-(provide 'yasnippet)
+
 ;; Local Variables:
 ;; coding: utf-8
 ;; indent-tabs-mode: nil
 ;; End:
+;;; yasnippet.el ends here
+(provide 'yasnippet)
 ;;; yasnippet.el ends here
