@@ -2379,7 +2379,7 @@ Just put this function in `hippie-expand-try-functions-list'."
   (when yas-minor-mode
     (if (not first-time?)
         (let ((yas-fallback-behavior 'return-nil))
-          (yas-expand))
+          (yas-expand-from-trigger-key))
       (undo 1)
       nil)))
 
@@ -2412,7 +2412,7 @@ value for the first time then always returns a cached value.")
            (put ',func 'yas--condition-cache (cons yas--condition-cache-timestamp new-value))
            new-value)))))
 
-(defalias #'yas-expand 'yas-expand-from-trigger-key)
+(defalias 'yas-expand #'yas-expand-from-trigger-key)
 
 (defun yas-expand-from-trigger-key (&optional field)
   "Expand a snippet before point.
