@@ -2873,17 +2873,17 @@ Don't use this from a Lisp program, call `yas-load-snippet-buffer'
 and `kill-buffer' instead."
   (interactive (list (yas--read-table) current-prefix-arg))
   (let ((template (yas-load-snippet-buffer table t)))
-    (when (and (buffer-modified-p)
-               (y-or-n-p
-                (format "[yas] Loaded for %s. Also save snippet buffer?"
-                        (yas--table-name (yas--template-table template)))))
-      (let ((default-directory (car (cdr (car (yas--guess-snippet-directories
-                                               (yas--template-table template))))))
+    (when (and (buffer-modified-p))
+      (let ((default-directory
+             (car (cdr (car (yas--guess-snippet-directories
+                             (yas--template-table template))))))
             (default-file-name (yas--template-name template)))
         (unless (or buffer-file-name (not default-file-name))
           (setq buffer-file-name
-                (read-file-name "File to save snippet in: "
-                                nil nil nil default-file-name))
+                (if (file-exists-p (expand-file-name default-file-name default-directory))
+                    (read-file-name "File to save snippet in: "
+                                    nil nil nil default-file-name)
+                  (expand-file-name default-file-name default-directory)))
           (rename-buffer (file-name-nondirectory buffer-file-name) t))
         (save-buffer)))
     (quit-window kill)))
