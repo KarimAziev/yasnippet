@@ -2861,7 +2861,7 @@ Return the `yas--template' object created"
                       (yas--template-name current-snippet) mode)))
       (yas-load-snippet-buffer mode t))))
 
-(defun yas-load-snippet-buffer-and-close (table &optional kill)
+(defun yas-load-snippet-buffer-and-close (table &optional not-kill)
   "Load and save the snippet, then `quit-window' if saved.
 Loading is performed by `yas-load-snippet-buffer'.  If the
 snippet is new, ask the user whether (and where) to save it.  If
@@ -2879,14 +2879,19 @@ and `kill-buffer' instead."
                              (yas--template-table template))))))
             (default-file-name (yas--template-name template)))
         (unless (or buffer-file-name (not default-file-name))
-          (setq buffer-file-name
-                (if (file-exists-p (expand-file-name default-file-name default-directory))
-                    (read-file-name "File to save snippet in: "
-                                    nil nil nil default-file-name)
-                  (expand-file-name default-file-name default-directory)))
-          (rename-buffer (file-name-nondirectory buffer-file-name) t))
-        (save-buffer)))
-    (quit-window kill)))
+          (let* ((file (if (file-exists-p (expand-file-name default-file-name
+                                                            default-directory))
+                           (read-file-name "File to save snippet in: "
+                                           nil nil nil default-file-name)
+                         (expand-file-name default-file-name default-directory)))
+                 (new-buff-name (file-name-nondirectory file)))
+            (setq buffer-file-name
+                  file)
+            (rename-buffer new-buff-name)))
+        (save-buffer))
+      (quit-window (not not-kill))
+      (yas-recompile-all)
+      (yas-reload-all))))
 
 (declare-function yas-debug-snippets "yasnippet-debug")
 
