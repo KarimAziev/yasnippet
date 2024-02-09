@@ -342,9 +342,9 @@ If non-nil insert region contents.  This can be overridden on a
 per-snippet basis.  A value of `cua' is considered equivalent to
 `?0' for backwards compatibility."
   :type '(choice (character :tag "Insert from register")
-                 (const t :tag "Insert region contents")
-                 (const nil :tag "Don't insert anything")
-                 (const cua))) ; backwards compat
+          (const :tag "Insert region contents" t)
+          (const :tag "Don't insert anything" nil)
+          (const cua)))
 
 (defcustom yas-good-grace t
   "If non-nil, don't raise errors in elisp evaluation.
@@ -4428,9 +4428,9 @@ deleted."
 
 If it does, also:
 
-* call `yas--advance-start-maybe' on FOM's next fom.
+- call `yas--advance-start-maybe' on FOM's next fom.
 
-* in case FOM is field call `yas--advance-end-maybe' on its parent
+- in case FOM is field call `yas--advance-end-maybe' on its parent
   field
 
 Also, if FOM is an exit-marker, always call
@@ -4842,42 +4842,42 @@ SAVED-QUOTES is the in format returned by `yas--save-backquotes'."
 
 The following count as a field:
 
-* \"${n: text}\", for a numbered field with default text, as long as N is not 0;
+- \"${n: text}\", for a numbered field with default text, as long as N is not 0;
 
-* \"${n: text$(expression)}, the same with a Lisp expression;
+- \"${n: text$(expression)}, the same with a Lisp expression;
   this is caught with the curiously named
 `yas--multi-dollar-lisp-expression-regexp'
 
-* the same as above but unnumbered, (no N:) and number is calculated
+- the same as above but unnumbered, (no N:) and number is calculated
 automatically.
 
 When multiple expressions are found, only the last one counts."
-;;
+  ;;
   (save-excursion
     (while (re-search-forward yas--field-regexp nil t)
       (let* ((brace-scan (save-match-data
                            (goto-char (match-beginning 2))
                            (yas--scan-for-field-end)))
-                           ;; if the `brace-scan' didn't reach a brace, we have a
-                           ;; snippet with invalid escaping, probably a closing
-                           ;; brace escaped with two backslashes (github#979). But
-                           ;; be lenient, because we can.
+             ;; if the `brace-scan' didn't reach a brace, we have a
+             ;; snippet with invalid escaping, probably a closing
+             ;; brace escaped with two backslashes (github#979). But
+             ;; be lenient, because we can.
              (real-match-end-0 (if (eq ?} (char-before brace-scan))
                                    brace-scan
                                  (point)))
              (number (and (match-string-no-properties 1)
                           (string-to-number (match-string-no-properties 1))))
              (brand-new-field (and real-match-end-0
-             ;; break if on "$(" immediately
-             ;; after the ":", this will be
-             ;; caught as a mirror with
-             ;; transform later.
+                                   ;; break if on "$(" immediately
+                                   ;; after the ":", this will be
+                                   ;; caught as a mirror with
+                                   ;; transform later.
                                    (not
                                     (string-match-p "\\`\\$[ \t\n]*("
                                                     (match-string-no-properties
                                                      2)))
-                                                     ;; allow ${0: some exit text}
-                                                     ;; (not (and number (zerop number)))
+                                   ;; allow ${0: some exit text}
+                                   ;; (not (and number (zerop number)))
                                    (yas--make-field
                                     number
                                     (yas--make-marker (match-beginning
@@ -4900,23 +4900,23 @@ When multiple expressions are found, only the last one counts."
                                 (yas--field-end brand-new-field))
               (goto-char (point-min))
               (yas--field-parse-create snippet brand-new-field)))))))
-              ;; if we entered from a parent field, now search for the
-              ;; `yas--multi-dollar-lisp-expression-regexp'. This is used for
-              ;; primary field transformations
-              ;;
+  ;; if we entered from a parent field, now search for the
+  ;; `yas--multi-dollar-lisp-expression-regexp'. This is used for
+  ;; primary field transformations
+  ;;
   (when parent-field
     (save-excursion
       (while (re-search-forward yas--multi-dollar-lisp-expression-regexp nil t)
         (let* ((real-match-end-1 (yas--scan-sexps (match-beginning 1) 1)))
-        ;; commit the primary field transformation if:
-        ;;
-        ;; 1. we don't find it in yas--dollar-regions (a subnested
-        ;; field) might have already caught it.
-        ;;
-        ;; 2. we really make sure we have either two '$' or some
-        ;; text and a '$' after the colon ':'. This is a FIXME: work
-        ;; my regular expressions and end these ugly hacks.
-        ;;
+          ;; commit the primary field transformation if:
+          ;;
+          ;; 1. we don't find it in yas--dollar-regions (a subnested
+          ;; field) might have already caught it.
+          ;;
+          ;; 2. we really make sure we have either two '$' or some
+          ;; text and a '$' after the colon ':'. This is a FIXME: work
+          ;; my regular expressions and end these ugly hacks.
+          ;;
           (when (and real-match-end-1
                      (not (member (cons (match-beginning 0)
                                         real-match-end-1)
