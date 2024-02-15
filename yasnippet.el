@@ -606,11 +606,11 @@ can be useful."
   "List of characters which *might* need to be escaped.")
 
 (defconst yas--field-regexp
-  "${\\([0-9]+:\\)?\\([^}]*\\)}"
+  "\\${\\([0-9]+:\\)?\\([^}]*\\)}"
   "A regexp to *almost* recognize a field.")
 
 (defconst yas--multi-dollar-lisp-expression-regexp
-  "$+[ \t\n]*\\(([^)]*)\\)"
+  "\\$+[ \t\n]*\\(([^)]*)\\)"
   "A regexp to *almost* recognize a \"$(...)\" expression.")
 
 (defconst yas--backquote-lisp-expression-regexp
@@ -618,11 +618,11 @@ can be useful."
   "A regexp to recognize a \"\\=`lisp-expression\\=`\" expression." )
 
 (defconst yas--transform-mirror-regexp
-  "${\\(?:\\([0-9]+\\):\\)?$\\([ \t\n]*([^}]*\\)"
+  "\\${\\(?:\\([0-9]+\\):\\)?\\$\\([ \t\n]*([^}]*\\)"
   "A regexp to *almost* recognize a mirror with a transform.")
 
 (defconst yas--simple-mirror-regexp
-  "$\\([0-9]+\\)"
+  "\\$\\([0-9]+\\)"
   "A regexp to recognize a simple mirror.")
 
 (defvar yas--snippet-id-seed 0
@@ -4804,6 +4804,7 @@ SAVED-QUOTES is the in format returned by `yas--save-backquotes'."
                (delete-char 1))
              (set-marker marker nil))))
 
+
 (defun yas--scan-sexps (from count)
   (ignore-errors
     (save-match-data ; `scan-sexps' may modify match data.
@@ -5252,13 +5253,15 @@ object satisfying `yas--field-p' to restrict the expansion to.")))
 (defun yas--create-snippet-xrefs ()
   (save-excursion
     (goto-char (point-min))
-    (while (search-forward-regexp "\\\\\\\\snippet[ \s\t]+`\\([^']+\\)'" nil t)
+    (while (search-forward-regexp "\\\\\\\\snippet[\s\t]+`\\([^']+\\)'" nil t)
       (let ((template (get-text-property (match-beginning 1)
                                          'yasnippet)))
         (when template
           (help-xref-button 1 'help-snippet-def template)
-          (delete-region (match-end 1) (match-end 0))
-          (delete-region (match-beginning 0) (match-beginning 1)))))))
+          (delete-region (match-end 1)
+                         (match-end 0))
+          (delete-region (match-beginning 0)
+                         (match-beginning 1)))))))
 
 ;;; Eldoc configuration.
 (eldoc-add-command 'yas-next-field-or-maybe-expand
@@ -5478,10 +5481,5 @@ can more or less safely rely upon them.")
 
 
 
-;; Local Variables:
-;; coding: utf-8
-;; indent-tabs-mode: nil
-;; End:
-;;; yasnippet.el ends here
 (provide 'yasnippet)
 ;;; yasnippet.el ends here

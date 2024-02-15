@@ -388,13 +388,13 @@ attention to case differences."
        (should (string= (buffer-string) pre-expand-string))))))
 
 (ert-deftest undo-indentation-1 ()
-  "Check undoing works when only line of snippet is indented."
+  "Test expanding and undoing a snippet in `emacs-lisp-mode'."
   (let ((yas-also-auto-indent-first-line t))
     (yas-test-expand-and-undo
      'emacs-lisp-mode '("s" . "(setq $0)") "(let\n(while s$0")))
 
 (ert-deftest undo-indentation-2 ()
-  "Check undoing works when only line of snippet is indented."
+  "Test expanding and undoing a snippet with auto-indent in `emacs-lisp-mode'."
   (let ((yas-also-auto-indent-first-line t)
         (indent-tabs-mode nil))
     (yas-test-expand-and-undo
