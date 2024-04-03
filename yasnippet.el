@@ -135,6 +135,7 @@
 (require 'cl-lib)
 (require 'eldoc) ; Needed for 24. ; Needed for 23.4.
 (require 'easymenu)
+
 (require 'help-mode)
 
 (defvar yas--editing-template)
@@ -2741,20 +2742,22 @@ NO-TEMPLATE is non-nil."
         (yas-selected-text (or yas-selected-text
                                (and (region-active-p)
                                     (buffer-substring-no-properties
-                                     (region-beginning) (region-end))))))
-
+                                     (region-beginning)
+                                     (region-end))))))
     (switch-to-buffer yas-new-snippet-buffer-name)
     (erase-buffer)
     (kill-all-local-variables)
     (snippet-mode)
     (yas-minor-mode 1)
     (set (make-local-variable 'yas--guessed-modes)
-         (mapcar (lambda (d) (yas--table-mode (car d)))
+         (mapcar (lambda (d)
+                   (yas--table-mode (car d)))
                  guessed-directories))
     (set (make-local-variable 'default-directory)
          (car (cdr (car guessed-directories))))
     (if (and (not no-template) yas-new-snippet-default)
-        (yas-expand-snippet yas-new-snippet-default))))
+        (yas-expand-snippet
+         yas-new-snippet-default))))
 
 (defun yas--compute-major-mode-and-parents (file)
   "Given FILE, find the nearest snippet directory for a given mode.
@@ -4187,18 +4190,17 @@ for normal snippets, and a list for command snippets)."
                  (yas--template-p snippet))
         (setq expand-env (yas--template-expand-env snippet)))
       (cond ((listp content)
-      ;; x) This is a snippet-command.
+             ;; x) This is a snippet-command.
              (yas--eval-for-effect content))
             (t
-            ;; x) This is a snippet-snippet :-)
+             ;; x) This is a snippet-snippet :-)
              (setq yas--start-column (current-column))
              ;; Stacked expansion: also shoosh the overlay modification hooks.
              (let ((yas--inhibit-overlay-hooks t))
                (setq snippet
                      (yas--snippet-create content expand-env start (point))))
-
-;; Stacked-expansion: This checks for stacked expansion, save the
-;; `yas--previous-active-field' and advance its boundary.
+             ;; Stacked-expansion: This checks for stacked expansion, save the
+             ;; `yas--previous-active-field' and advance its boundary.
              (let ((existing-field (and yas--active-field-overlay
                                         (overlay-buffer
                                          yas--active-field-overlay)
@@ -4211,22 +4213,20 @@ for normal snippets, and a list for command snippets)."
                  (yas--advance-end-maybe-previous-fields
                   existing-field (overlay-end yas--active-field-overlay)
                   (cdr yas--active-snippets))))
-
-;; Exit the snippet immediately if no fields.
+             ;; Exit the snippet immediately if no fields.
              (unless (yas--snippet-fields snippet)
                (yas-exit-snippet snippet))
-
-;; Now, schedule a move to the first field.
+             ;; Now, schedule a move to the first field.
              (let ((first-field (car (yas--snippet-fields snippet))))
                (when first-field
                  (sit-for 0) ;; fix issue 125
                  (yas--letenv (yas--snippet-expand-env snippet)
-                              (yas--move-to-field snippet first-field))
+                   (yas--move-to-field snippet first-field))
                  (when (and (eq (yas--field-number first-field) 0)
                             (> (length (yas--field-text-for-display
                                         first-field))
                                0))
-                               ;; Keep region for ${0:exit text}.
+                   ;; Keep region for ${0:exit text}.
                    (setq deactivate-mark nil))))
              (yas--message 4 "snippet %d expanded." (yas--snippet-id snippet))
              t)))))
@@ -5322,111 +5322,91 @@ object satisfying `yas--field-p' to restrict the expansion to.")))
   (yas-global-mode 1))
 
 (defvar yas--backported-syms '(;; `defcustom's
-                             ;;
-                             yas-snippet-dirs
-                             yas-prompt-functions
-                             yas-indent-line
-                             yas-also-auto-indent-first-line
-                             yas-snippet-revival
-                             yas-triggers-in-field
-                             yas-fallback-behavior
-                             yas-choose-keys-first
-                             yas-choose-tables-first
-                             yas-use-menu
-                             yas-trigger-symbol
-                             yas-wrap-around-region
-                             yas-good-grace
-                             yas-visit-from-menu
-                             yas-expand-only-for-last-commands
-                             yas-field-highlight-face
-
-                             ;; these vars can be customized as well
-                             ;;
-                             yas-keymap
-                             yas-verbosity
-                             yas-extra-modes
-                             yas-key-syntaxes
-                             yas-after-exit-snippet-hook
-                             yas-before-expand-snippet-hook
-                             yas-buffer-local-condition
-                             yas-dont-activate
-
-                             ;; prompting functions
-                             ;;
-                             yas-x-prompt
-                             yas-ido-prompt
-                             yas-no-prompt
-                             yas-completing-prompt
-                             yas-dropdown-prompt
-
-                             ;; interactive functions
-                             ;;
-                             yas-expand
-                             yas-minor-mode
-                             yas-global-mode
-                             yas-direct-keymaps-reload
-                             yas-minor-mode-on
-                             yas-load-directory
-                             yas-reload-all
-                             yas-compile-directory
-                             yas-recompile-all
-                             yas-about
-                             yas-expand-from-trigger-key
-                             yas-expand-from-keymap
-                             yas-insert-snippet
-                             yas-visit-snippet-file
-                             yas-new-snippet
-                             yas-load-snippet-buffer
-                             yas-tryout-snippet
-                             yas-describe-tables
-                             yas-next-field-or-maybe-expand
-                             yas-next-field
-                             yas-prev-field
-                             yas-abort-snippet
-                             yas-exit-snippet
-                             yas-exit-all-snippets
-                             yas-skip-and-clear-or-delete-char
-                             yas-initialize
-
-                             ;; symbols that I "exported" for use
-                             ;; in snippets and hookage
-                             ;;
-                             yas-expand-snippet
-                             yas-define-snippets
-                             yas-define-menu
-                             yas-snippet-beg
-                             yas-snippet-end
-                             yas-modified-p
-                             yas-moving-away-p
-                             yas-substr
-                             yas-choose-value
-                             yas-key-to-value
-                             yas-throw
-                             yas-verify-value
-                             yas-field-value
-                             yas-text
-                             yas-selected-text
-                             yas-default-from-field
-                             yas-inside-string
-                             yas-unimplemented
-                             yas-define-condition-cache
-                             yas-hippie-try-expand
-
-                             ;; debug definitions
-                             ;; yas-debug-snippet-vars
-                             ;; yas-exterminate-package
-                             ;; yas-debug-test
-
-                             ;; testing definitions
-                             ;; yas-should-expand
-                             ;; yas-should-not-expand
-                             ;; yas-mock-insert
-                             ;; yas-make-file-or-dirs
-                             ;; yas-variables
-                             ;; yas-saving-variables
-                             ;; yas-call-with-snippet-dirs
-                             ;; yas-with-snippet-dirs
-)
+                               ;;
+                               yas-snippet-dirs
+                               yas-prompt-functions
+                               yas-indent-line
+                               yas-also-auto-indent-first-line
+                               yas-snippet-revival
+                               yas-triggers-in-field
+                               yas-fallback-behavior
+                               yas-choose-keys-first
+                               yas-choose-tables-first
+                               yas-use-menu
+                               yas-trigger-symbol
+                               yas-wrap-around-region
+                               yas-good-grace
+                               yas-visit-from-menu
+                               yas-expand-only-for-last-commands
+                               yas-field-highlight-face
+                               ;; these vars can be customized as well
+                               ;;
+                               yas-keymap
+                               yas-verbosity
+                               yas-extra-modes
+                               yas-key-syntaxes
+                               yas-after-exit-snippet-hook
+                               yas-before-expand-snippet-hook
+                               yas-buffer-local-condition
+                               yas-dont-activate
+                               ;; prompting functions
+                               ;;
+                               yas-x-prompt
+                               yas-ido-prompt
+                               yas-no-prompt
+                               yas-completing-prompt
+                               yas-dropdown-prompt
+                               ;; interactive functions
+                               ;;
+                               yas-expand
+                               yas-minor-mode
+                               yas-global-mode
+                               yas-direct-keymaps-reload
+                               yas-minor-mode-on
+                               yas-load-directory
+                               yas-reload-all
+                               yas-compile-directory
+                               yas-recompile-all
+                               yas-about
+                               yas-expand-from-trigger-key
+                               yas-expand-from-keymap
+                               yas-insert-snippet
+                               yas-visit-snippet-file
+                               yas-new-snippet
+                               yas-load-snippet-buffer
+                               yas-tryout-snippet
+                               yas-describe-tables
+                               yas-next-field-or-maybe-expand
+                               yas-next-field
+                               yas-prev-field
+                               yas-abort-snippet
+                               yas-exit-snippet
+                               yas-exit-all-snippets
+                               yas-skip-and-clear-or-delete-char
+                               yas-initialize
+                               ;; symbols that I "exported" for use
+                               ;; in snippets and hookage
+                               ;;
+                               yas-expand-snippet
+                               yas-define-snippets
+                               yas-define-menu
+                               yas-snippet-beg
+                               yas-snippet-end
+                               yas-modified-p
+                               yas-moving-away-p
+                               yas-substr
+                               yas-choose-value
+                               yas-key-to-value
+                               yas-throw
+                               yas-verify-value
+                               yas-field-value
+                               yas-text
+                               yas-selected-text
+                               yas-default-from-field
+                               yas-inside-string
+                               yas-unimplemented
+                               yas-define-condition-cache
+                               yas-hippie-try-expand)
   "Backported yasnippet symbols.
 
 They are mapped to \"yas/*\" variants.")
@@ -5460,6 +5440,184 @@ i.e. the ones with \"yas-\" single dash prefix. I will try to
 keep them in future yasnippet versions and other elisp libraries
 can more or less safely rely upon them.")
 
+(defun yasnippet--read-with (fn &optional transform-fn)
+  "Collect sexps from buffer if they match FN, optionally transforming them.
+
+Argument FN is a function that takes one argument and returns non-nil if the
+sexp should be included.
+
+Optional argument TRANSFORM-FN is a function that takes one argument and returns
+the transformed sexp."
+  (let ((sexps)
+        (sexp))
+    (save-excursion
+      (goto-char (point-min))
+      (while (setq sexp (ignore-errors (read (current-buffer))))
+        (when (funcall fn sexp)
+          (push (if transform-fn
+                    (funcall transform-fn sexp)
+                  sexp)
+                sexps))))
+    sexps))
+
+(defun yasnippet--common-prefix (s1 s2)
+  "Find common prefix of strings S1 and S2.
+
+Argument S1 is a string to compare with S2.
+
+Argument S2 is a string to compare with S1."
+  (declare (pure t)
+           (side-effect-free t))
+  (let ((search-length (min (length s1)
+                            (length s2)))
+        (i 0))
+    (while (and (< i search-length)
+                (= (aref s1 i)
+                   (aref s2 i)))
+      (setq i (1+ i)))
+    (substring s1 0 i)))
+
+(defun yasnippet--get-def-names ()
+  "Extract defined symbol names from buffer's Lisp code."
+  (let ((syms))
+    (yasnippet--read-with (lambda (sexp)
+                         (pcase sexp
+                           (`(,(or 'defun 'cl-defun 'defmacro 'cl-defmacro)
+                              ,(and (pred (symbolp))
+                                sym
+                                (guard (not (memq sym '(t nil)))))
+                              ,(pred (listp))
+                              . ,_)
+                            (push (symbol-name sym) syms))
+                           (`(,(or 'defvar 'defvar-local 'defvar-keymap
+                                'defcustom)
+                              ,(and (pred (symbolp))
+                                sym
+                                (guard (not (memq sym '(t nil)))))
+                              . ,_)
+                            (push (symbol-name sym) syms)))))
+    syms))
+
+(defun yasnippet--provided-name ()
+  "Extract provided feature name from Emacs Lisp code."
+  (let ((parse-sexp-ignore-comments t)
+        (found))
+    (save-excursion
+      (goto-char (point-max))
+      (with-syntax-table emacs-lisp-mode-syntax-table
+        (while
+            (when (and (not found)
+                       (condition-case nil
+                           (progn (backward-list) t)
+                         (error nil)))
+              (when-let ((item (ignore-errors (sexp-at-point))))
+                (pcase item
+                  (`(provide (quote ,(and (pred (symbolp)) sym)) . ,_)
+                   (setq found (symbol-name sym))))))))
+      found)))
+
+(defun yasnippet-guess-elisp-prefix-id ()
+  "Guess and return the common prefix for definition names."
+  (or (yasnippet--provided-name)
+      (let ((prefix (or
+                     (let ((strings (yasnippet--get-def-names)))
+                       (seq-reduce (lambda (acc it)
+                                     (let ((prefix
+                                            (yasnippet--common-prefix acc it)))
+                                       (if (string-empty-p prefix)
+                                           acc
+                                         prefix)))
+                                   strings
+                                   (pop strings)))
+                     (replace-regexp-in-string
+                      "[][\s\t\n\r\f*'\")(]+"
+                      (lambda (s)
+                        (if (string-empty-p (string-trim s)) "-" ""))
+                      (file-name-base (buffer-name))))))
+        (replace-regexp-in-string "[-]+$" ""
+                                  prefix))))
+(defun yasnippet--get-region ()
+  "Return region's text if active, without text properties."
+  (and (region-active-p)
+       (buffer-substring-no-properties
+        (region-beginning)
+        (region-end))))
+
+(defun yasnippet--elisp-transform-new-snippet ()
+  "Transforms snippet text, handling prefix and backticks."
+  (let ((prefix (yasnippet-guess-elisp-prefix-id))
+        (str (yasnippet--get-region))
+        (key)
+        (name))
+    (when str
+      (with-temp-buffer
+        (insert
+         (if prefix
+             (replace-regexp-in-string
+              (concat "\\_<\\(" (regexp-quote prefix) "\\)\\>")
+              "$1"
+              str)
+           str))
+        (while (re-search-backward
+                "`"
+                nil t 1)
+          (pcase (skip-chars-backward "\\\\")
+            (0 (insert "\\\\"))
+            (-1 (insert "\\"))))
+        (goto-char (point-min))
+        (when (re-search-forward "\\$1[-]*\\([a-z][^\s\t\n]+\\)" nil t 1)
+          (setq name (match-string-no-properties 1))
+          (setq key (yasnippet--make-abbr (yas--key-from-desc name))))
+        (list key name (buffer-string))))))
+
+
+(defun yasnippet--make-abbr (text)
+  "Remove vowels from TEXT unless it start with a vowel.
+
+Argument TEXT is the string to process."
+  (cond ((string-match-p "^[aeiouy]" text)
+         text)
+        (t (replace-regexp-in-string "[aeiouy]" "" text))))
+
+(defun yas-elisp-new-snippet ()
+  "Create a new snippet with optional predefined content and metadata."
+  (interactive "P")
+  (pcase-let ((`(,key ,name ,str)
+               (yasnippet--elisp-transform-new-snippet)))
+    (if (not str)
+        (yas-new-snippet)
+      (let* ((header (string-join (list "# -*- mode: snippet -*-"
+                                        (format "# name: %s" (or name ""))
+                                        (format "# key: %s" (or key
+                                                                ""))
+                                        "# --")
+                                  "\n"))
+             (guessed-directories (yas--guess-snippet-directories))
+             (yas-selected-text (or yas-selected-text
+                                    (and (region-active-p)
+                                         (buffer-substring-no-properties
+                                          (region-beginning)
+                                          (region-end))))))
+        (switch-to-buffer yas-new-snippet-buffer-name)
+        (erase-buffer)
+        (kill-all-local-variables)
+        (snippet-mode)
+        (yas-minor-mode 1)
+        (set (make-local-variable 'yas--guessed-modes)
+             (mapcar (lambda (d)
+                       (yas--table-mode (car d)))
+                     guessed-directories))
+        (set (make-local-variable 'default-directory)
+             (car (cdr (car guessed-directories))))
+        (goto-char (point-min))
+        (insert
+         header)
+        (newline 2)
+        (save-excursion
+          (insert str))))))
+
+
+
 ;;;###autoload
 (defun yas-snippet-dwim ()
   "Return a snippet based on the current region or insert a new snippet."
@@ -5472,7 +5630,9 @@ can more or less safely rely upon them.")
         (buffer-substring-no-properties
          (region-beginning)
          (region-end)))
-      (yas-new-snippet)
+      (cond ((derived-mode-p 'emacs-lisp-mode)
+             (yas-elisp-new-snippet))
+            (t (yas-new-snippet)))
     (call-interactively (if (and (eq completing-read-function
                                      'ivy-completing-read)
                                  (fboundp 'ivy-yasnippet))
