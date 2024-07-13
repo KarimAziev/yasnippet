@@ -5561,9 +5561,7 @@ Argument S2 is a string to compare with S1."
         (while (re-search-backward
                 "`"
                 nil t 1)
-          (pcase (skip-chars-backward "\\\\")
-            (0 (insert "\\\\"))
-            (-1 (insert "\\"))))
+          (insert "\\"))
         (goto-char (point-min))
         (when (re-search-forward "\\$1[-]*\\([a-z][^\s\t\n]+\\)" nil t 1)
           (setq name (match-string-no-properties 1))
