@@ -5510,7 +5510,7 @@ Argument S2 is a string to compare with S1."
                        (condition-case nil
                            (progn (backward-list) t)
                          (error nil)))
-              (when-let ((item (ignore-errors (sexp-at-point))))
+              (when-let* ((item (ignore-errors (sexp-at-point))))
                 (pcase item
                   (`(provide (quote ,(and (pred (symbolp)) sym)) . ,_)
                    (setq found (symbol-name sym))))))))
