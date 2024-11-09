@@ -9,7 +9,7 @@
 ;; X-URL: https://github.com/joaotavora/yasnippet
 ;; Keywords: convenience, emulation
 ;; URL: https://github.com/joaotavora/yasnippet
-;; Package-Requires: ((cl-lib "0.5"))
+;; Package-Requires: ((cl-lib "1.0") (emacs "26.1") (eldoc "1.15.0"))
 ;; EmacsWiki: YaSnippetMode
 
 
