@@ -5614,6 +5614,49 @@ Argument TEXT is the string to process."
         (save-excursion
           (insert str))))))
 
+(defun yasnippet-completing-read-annotated (prompt alist)
+  "Read a string with completion and annotations from a given ALIST.
+
+Argument PROMPT is a string used to prompt the user for input.
+
+Argument ALIST is a list of items to choose from, where each item can be
+a string, a cons cell, or a symbol."
+  (let* ((alist (remove nil
+                        (mapcar (lambda (it)
+                                  (cond ((not it)
+                                         it)
+                                        ((stringp it)
+                                         (list it))
+                                        ((consp it)
+                                         (cons
+                                          (if (stringp (car it))
+                                              (car it)
+                                            (format "%s" (car it)))
+                                          (cdr it)))
+                                        ((symbolp it)
+                                         (list (format "%s" it)))))
+                                alist)))
+         (longest
+          (propertize " " 'display
+                      (list 'space :align-to
+                            (apply #'max
+                                   (or
+                                    (mapcar
+                                     (lambda (it)
+                                       (length (car it)))
+                                     alist)
+                                    (list 10))))))
+         (annotf (lambda (str)
+                   (when-let* ((descr (cdr (assoc str alist))))
+                     (concat longest " " (if (listp descr)
+                                             (format "%s" descr) descr))))))
+    (completing-read prompt
+                     (lambda (str pred action)
+                       (if (eq action 'metadata)
+                           `(metadata
+                             (annotation-function . ,annotf))
+                         (complete-with-action action alist str pred))))))
+
 
 
 ;;;###autoload
