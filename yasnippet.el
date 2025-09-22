@@ -1775,7 +1775,7 @@ Optional PROMPT sets the prompt to use."
     (setq templates
           (sort templates #'(lambda (t1 t2)
                               (< (length (yas--template-name t1))
-                                 (length (yas--template-name t2))))))
+                               (length (yas--template-name t2))))))
     (cl-some (lambda (fn)
                (funcall fn (or prompt "Choose a snippet: ")
                         templates
@@ -2616,14 +2616,18 @@ by condition."
                                          yas-buffer-local-condition))
          (templates (yas--all-templates (yas--get-snippet-tables)))
          (yas--current-template (and templates
-                                    (or (and (cl-rest templates) ;; more than one template for same key
-                                             (yas--prompt-for-template templates))
-                                        (car templates))))
+                                     (or
+                                      (and (cl-rest templates) ;; more than one template for same key
+                                           (yas--prompt-for-template templates))
+                                      (car templates))))
          (where (if (region-active-p)
-                    (cons (region-beginning) (region-end))
-                  (cons (point) (point)))))
+                    (cons (region-beginning)
+                          (region-end))
+                  (cons (point)
+                        (point)))))
     (if yas--current-template
-        (yas-expand-snippet yas--current-template (car where) (cdr where))
+        (yas-expand-snippet yas--current-template (car where)
+                            (cdr where))
       (yas--message 1 "No snippets can be inserted here!"))))
 
 (defun yas-visit-snippet-file ()
@@ -5661,24 +5665,15 @@ a string, a cons cell, or a symbol."
 
 ;;;###autoload
 (defun yas-snippet-dwim ()
-  "Return a snippet based on the current region or insert a new snippet."
+  "Activate `yas-minor-mode' and insert a snippet interactively."
   (interactive)
   (unless (bound-and-true-p yas-minor-mode)
     (yas-minor-mode 1))
-  (if
-      (when (and (region-active-p)
-                 (use-region-p))
-        (buffer-substring-no-properties
-         (region-beginning)
-         (region-end)))
-      (cond ((derived-mode-p 'emacs-lisp-mode)
-             (yas-elisp-new-snippet))
-            (t (yas-new-snippet)))
-    (call-interactively (if (and (eq completing-read-function
-                                     'ivy-completing-read)
-                                 (fboundp 'ivy-yasnippet))
-                            #'ivy-yasnippet
-                          #'yas-insert-snippet))))
+  (call-interactively (if (and (eq completing-read-function
+                                   'ivy-completing-read)
+                               (fboundp 'ivy-yasnippet))
+                          #'ivy-yasnippet
+                        #'yas-insert-snippet)))
 
 
 
