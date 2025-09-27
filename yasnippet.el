@@ -5651,9 +5651,16 @@ a string, a cons cell, or a symbol."
                                      alist)
                                     (list 10))))))
          (annotf (lambda (str)
-                   (when-let* ((descr (cdr (assoc str alist))))
-                     (concat longest " " (if (listp descr)
-                                             (format "%s" descr) descr))))))
+                   (when-let* ((descr (cdr (assoc str alist)))
+                               (descr
+                                (cond ((and (proper-list-p descr)
+                                            (= 1 (length descr)))
+                                       (car descr))
+                                      (t descr))))
+                     (concat longest " "
+                             (if (stringp descr)
+                                 descr
+                               (format "%s" descr)))))))
     (completing-read prompt
                      (lambda (str pred action)
                        (if (eq action 'metadata)
