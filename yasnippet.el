@@ -2007,12 +2007,13 @@ If INTERACTIVE is non nil, show message."
       (let ((output-file (expand-file-name ".yas-compiled-snippets.el"
                                            directory)))
         (with-temp-file output-file
-          (insert (format ";;; Compiled snippets and support files for `%s'\n"
-                          mode-sym))
+          (insert (format
+                   ";;; Compiled snippets and support files for `%s' -*- lexical-binding: t; -*-\n"
+                   mode-sym))
           (yas--load-directory-2 directory mode-sym)
           (insert (format ";;; Do not edit! File generated at %s\n"
                           (current-time-string)))))
-                          ;; Normal case.
+    ;; Normal case.
     (unless (file-exists-p (expand-file-name ".yas-skip" directory))
       (unless (and (load (expand-file-name ".yas-compiled-snippets" directory)
                          'noerror (<= yas-verbosity 3))
